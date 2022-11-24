@@ -22,7 +22,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PostRepositoryImpl @Inject constructor(
+class PostRepositoryImpl(
     private val postDao: PostDao,
     private val apiService: ApiService,
 ) : PostRepository {
