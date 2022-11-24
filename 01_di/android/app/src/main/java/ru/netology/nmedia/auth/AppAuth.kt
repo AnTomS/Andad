@@ -49,11 +49,11 @@ class AppAuth(
 
     val authStateFlow: StateFlow<AuthState> = _authStateFlow.asStateFlow()
 
-    @InstallIn(SingletonComponent::class)
-    @EntryPoint
-    interface AppAuthEntryPoint {
-        fun apiService(): ApiService
-    }
+//    @InstallIn(SingletonComponent::class)
+//    @EntryPoint
+//    interface AppAuthEntryPoint {
+//        fun apiService(): ApiService
+//    }
 
     @Synchronized
     fun setAuth(id: Long, token: String) {

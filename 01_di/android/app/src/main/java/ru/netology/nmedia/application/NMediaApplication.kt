@@ -9,9 +9,8 @@ import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.di.DependencyContainer
 import javax.inject.Inject
 
-@HiltAndroidApp
 class NMediaApplication : Application() {
-    private val appScope = CoroutineScope(Dispatchers.Default)
+
 
     @Inject
     lateinit var auth: AppAuth
@@ -19,12 +18,7 @@ class NMediaApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         DependencyContainer.initApp(this)
-        setupAuth()
+
     }
 
-    private fun setupAuth() {
-        appScope.launch {
-            auth.sendPushToken()
-        }
-    }
 }
