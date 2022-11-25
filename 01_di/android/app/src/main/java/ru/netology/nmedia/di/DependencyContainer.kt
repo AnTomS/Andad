@@ -2,13 +2,14 @@ package ru.netology.nmedia.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.viewbinding.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import ru.netology.nmedia.api.ApiService
-import ru.netology.nmedia.api.loggingInterceptor
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.repository.PostRepository
@@ -22,7 +23,7 @@ class DependencyContainer(
 
     companion object {
 
-        private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
+        const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
 
         @Volatile
         private var instance: DependencyContainer? = null
@@ -41,21 +42,26 @@ class DependencyContainer(
 
     val appAuth = AppAuth(context)
 
-    private val authInterceptor = Interceptor { chain ->
-        val request = appAuth.authStateFlow.value.token?.let {
-            chain.request()
-                .newBuilder()
-                .addHeader("Authorization", it)
-                .build()
-        } ?: chain.request()
 
-        chain.proceed(request)
-    }
+    private val logging = HttpLoggingInterceptor()
+        .apply {
+            if (BuildConfig.DEBUG) {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+        }
+
 
     private val okhttp = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .addInterceptor(loggingInterceptor())
-        .addInterceptor(authInterceptor)
+        .addInterceptor(logging)
+        .addInterceptor { chain ->
+            appAuth.authStateFlow.value.token?.let { token ->
+                val newRequest = chain.request().newBuilder()
+                    .addHeader("Authorization", token)
+                    .build()
+                return@addInterceptor chain.proceed(newRequest)
+            }
+            chain.proceed (chain.request())
+        }
         .build()
 
 

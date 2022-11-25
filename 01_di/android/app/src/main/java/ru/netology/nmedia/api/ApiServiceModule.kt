@@ -10,10 +10,10 @@ import javax.inject.Singleton
 //@InstallIn(SingletonComponent::class)
 //@Module
 //object ApiServiceModule {
-//    @Provides
-//    @Singleton
-//    fun provideApiService(auth: AppAuth): ApiService {
+//
+//        fun provideApiService(auth: AppAuth): ApiService {
 //        return retrofit(okhttp(loggingInterceptor(), authInterceptor(auth)))
 //            .create(ApiService::class.java)
 //    }
+//
 //}
