@@ -10,7 +10,6 @@ import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.di.DependencyContainer
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -20,7 +19,7 @@ class FCMService : FirebaseMessagingService() {
     private val gson = Gson()
 
     @Inject
-    lateinit var auth: AppAuth
+    lateinit var appAuth: AppAuth
 
     override fun onCreate() {
         super.onCreate()
@@ -42,6 +41,6 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        DependencyContainer.getInstance().appAuth.sendPushToken(token)
+        appAuth.sendPushToken(token)
     }
 }

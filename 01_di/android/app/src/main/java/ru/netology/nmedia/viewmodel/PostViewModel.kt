@@ -18,6 +18,7 @@ import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
+import javax.inject.Inject
 
 private val empty = Post(
     id = 0,
@@ -32,8 +33,9 @@ private val empty = Post(
 
 private val noPhoto = PhotoModel()
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class PostViewModel(
+@ExperimentalCoroutinesApi
+@HiltViewModel
+class PostViewModel @Inject constructor(
     private val repository: PostRepository,
     auth: AppAuth,
 ) : ViewModel() {
