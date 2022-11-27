@@ -14,7 +14,6 @@ import javax.inject.Singleton
 
 class GoogleServiceModule {
 
-
     @Singleton
     @Provides
     fun provideFirebaseMessagingModule(): FirebaseMessaging {
