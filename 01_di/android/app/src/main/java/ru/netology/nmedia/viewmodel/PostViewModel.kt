@@ -3,16 +3,19 @@ package ru.netology.nmedia.viewmodel
 import android.net.Uri
 import androidx.core.net.toFile
 import androidx.lifecycle.*
+import androidx.lifecycle.switchMap
+import androidx.paging.PagingData
+import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.Token
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
@@ -37,28 +40,27 @@ private val noPhoto = PhotoModel()
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
-    auth: AppAuth,
+    private val appAuth: AppAuth,
 ) : ViewModel() {
-    val data: LiveData<FeedModel> = auth.authStateFlow
+
+    val authenticated: Boolean
+    get() = appAuth.authStateFlow.value.token != null
+
+    val authData: LiveData<Token?> = appAuth.authStateFlow.asLiveData(Dispatchers.Default)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val data: Flow<PagingData<Post>> = appAuth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            repository.data
-                .map { posts ->
-                    FeedModel(
-                        posts.map { it.copy(ownedByMe = it.authorId == myId) },
-                        posts.isEmpty()
-                    )
-                }
-        }.asLiveData(Dispatchers.Default)
+            repository.data.map { posts ->
+                posts.map { it.copy(ownedByMe = it.authorId == myId) }
+            }
+        }.flowOn(Dispatchers.Default)
+
 
     private val _dataState = MutableLiveData<FeedModelState>()
     val dataState: LiveData<FeedModelState>
         get() = _dataState
 
-    val newerCount: LiveData<Int> = data.switchMap {
-        repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
-            .catch { e -> e.printStackTrace() }
-            .asLiveData(Dispatchers.Default)
-    }
 
     private val edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()

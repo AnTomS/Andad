@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dto.PushToken
+import ru.netology.nmedia.dto.Token
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,24 +32,24 @@ class AppAuth @Inject constructor(
     private val idKey = "id"
     private val tokenKey = "token"
 
-    private val _authStateFlow: MutableStateFlow<AuthState>
+    private val _authStateFlow: MutableStateFlow<Token>
 
     init {
         val id = prefs.getLong(idKey, 0)
         val token = prefs.getString(tokenKey, null)
 
         if (id == 0L || token == null) {
-            _authStateFlow = MutableStateFlow(AuthState())
+            _authStateFlow = MutableStateFlow(Token())
             with(prefs.edit()) {
                 clear()
                 apply()
             }
         } else {
-            _authStateFlow = MutableStateFlow(AuthState(id, token))
+            _authStateFlow = MutableStateFlow(Token(id, token))
         }
     }
 
-    val authStateFlow: StateFlow<AuthState> = _authStateFlow.asStateFlow()
+    val authStateFlow: StateFlow<Token> = _authStateFlow.asStateFlow()
 
 
     @InstallIn(SingletonComponent::class)
@@ -59,7 +60,7 @@ class AppAuth @Inject constructor(
 
     @Synchronized
     fun setAuth(id: Long, token: String) {
-        _authStateFlow.value = AuthState(id, token)
+        _authStateFlow.value = Token(id, token)
         with(prefs.edit()) {
             putLong(idKey, id)
             putString(tokenKey, token)
@@ -70,7 +71,7 @@ class AppAuth @Inject constructor(
 
     @Synchronized
     fun removeAuth() {
-        _authStateFlow.value = AuthState()
+        _authStateFlow.value = Token()
         with(prefs.edit()) {
             clear()
             apply()
@@ -82,7 +83,8 @@ class AppAuth @Inject constructor(
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 val pushToken = PushToken(token ?: FirebaseMessaging.getInstance().token.await())
-                val entryPoint = EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java )
+                val entryPoint =
+                    EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java)
                 entryPoint.apiService().save(pushToken)
             } catch (e: Exception) {
                 e.printStackTrace()
