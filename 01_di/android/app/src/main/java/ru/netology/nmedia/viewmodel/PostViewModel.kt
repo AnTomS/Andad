@@ -6,6 +6,7 @@ import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -32,7 +33,7 @@ private val empty = Post(
 
 private val noPhoto = PhotoModel()
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@ExperimentalCoroutinesApi
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
@@ -53,10 +54,17 @@ class PostViewModel @Inject constructor(
     val dataState: LiveData<FeedModelState>
         get() = _dataState
 
+    val newerCount: LiveData<Int> = data.switchMap {
+        repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
+            .catch { e -> e.printStackTrace() }
+            .asLiveData(Dispatchers.Default)
+    }
+
     private val edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
+
 
     private val _photo = MutableLiveData(noPhoto)
     val photo: LiveData<PhotoModel>

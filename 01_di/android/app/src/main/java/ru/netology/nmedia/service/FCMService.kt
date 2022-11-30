@@ -17,8 +17,9 @@ class FCMService : FirebaseMessagingService() {
     private val content = "content"
     private val channelId = "remote"
     private val gson = Gson()
+
     @Inject
-    lateinit var auth: AppAuth
+    lateinit var appAuth: AppAuth
 
     override fun onCreate() {
         super.onCreate()
@@ -40,6 +41,6 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        auth.sendPushToken(token)
+        appAuth.sendPushToken(token)
     }
 }

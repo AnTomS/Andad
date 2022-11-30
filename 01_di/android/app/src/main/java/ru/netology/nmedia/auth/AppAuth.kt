@@ -1,8 +1,10 @@
 package ru.netology.nmedia.auth
 
 import android.content.Context
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
+
+
+import com.google.firebase.messaging.FirebaseMessaging
+
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -22,7 +24,8 @@ import javax.inject.Singleton
 
 @Singleton
 class AppAuth @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @ApplicationContext
+    private val context: Context,
 ) {
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
     private val idKey = "id"
@@ -46,6 +49,7 @@ class AppAuth @Inject constructor(
     }
 
     val authStateFlow: StateFlow<AuthState> = _authStateFlow.asStateFlow()
+
 
     @InstallIn(SingletonComponent::class)
     @EntryPoint
@@ -77,21 +81,16 @@ class AppAuth @Inject constructor(
     fun sendPushToken(token: String? = null) {
         CoroutineScope(Dispatchers.Default).launch {
             try {
-                val pushToken = PushToken(token ?: Firebase.messaging.token.await())
-                getApiService(context).save(pushToken)
+                val pushToken = PushToken(token ?: FirebaseMessaging.getInstance().token.await())
+                val entryPoint = EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java )
+                entryPoint.apiService().save(pushToken)
             } catch (e: Exception) {
                 e.printStackTrace()
+
             }
         }
     }
 
-    private fun getApiService(context: Context): ApiService {
-        val hiltEntryPoint = EntryPointAccessors.fromApplication(
-            context,
-            AppAuthEntryPoint::class.java
-        )
-        return hiltEntryPoint.apiService()
-    }
 }
 
 data class AuthState(val id: Long = 0, val token: String? = null)

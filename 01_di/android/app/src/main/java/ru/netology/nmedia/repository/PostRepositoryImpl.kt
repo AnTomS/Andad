@@ -19,9 +19,8 @@ import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import java.io.IOException
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
+
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
     private val apiService: ApiService,
