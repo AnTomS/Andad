@@ -55,7 +55,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                 )
         }
 
-        viewModel.data.observe(this) {
+        viewModel.authData.observe(this) {
             invalidateOptionsMenu()
         }
 
@@ -74,6 +74,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
         addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_main, menu)
+
 
                 menu.let {
                     it.setGroupVisible(R.id.unauthenticated, !viewModel.authenticated)
