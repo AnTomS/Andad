@@ -2,7 +2,7 @@
 buildscript {
     ext.kotlin_version = "1.7.21"
     ext.hilt_version = "2.44.2"
-    ext.android_gradle_version = "7.2.2"
+    ext.android_gradle_version = '7.3.0'
 }
 
 plugins {
