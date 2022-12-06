@@ -27,4 +27,7 @@ interface PostDao {
 
     @Query("SELECT * FROM PostEntity ORDER BY id DESC")
     fun getPagingSource(): PagingSource<Int, PostEntity>
+
+    @Query("DELETE FROM PostEntity")
+    suspend fun clear()
 }
