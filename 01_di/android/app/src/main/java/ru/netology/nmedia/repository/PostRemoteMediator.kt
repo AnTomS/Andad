@@ -8,6 +8,7 @@ import ru.netology.nmedia.dao.PostRemoteKeyDao
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.PostRemoteKeyEntity
+import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.error.ApiError
 import java.io.IOException
 
@@ -26,11 +27,15 @@ class PostRemoteMediator(
         try {
             val result = when (loadType) {
                 LoadType.REFRESH ->
-                    apiService.getLatest(state.config.pageSize)
+                    postRemoteKeyDao.max()?.let { id ->
+                        apiService.getAfter(id, state.config.pageSize)
+                    } ?: apiService.getLatest(state.config.pageSize)
 
                 LoadType.PREPEND -> {
-                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(false)
-                    apiService.getAfter(id, state.config.pageSize)
+//                    отключаем, чтобы после т. е. при scroll к первому сверху
+//                     элементу данные автоматически не подгружались
+                    return MediatorResult.Success(true)
+
 
                 }
 
@@ -49,27 +54,20 @@ class PostRemoteMediator(
             appDb.withTransaction {
                 when (loadType) {
                     LoadType.REFRESH -> {
-                        postDao.clear()
-                        postRemoteKeyDao.insert(
-                            listOf(
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.AFTER,
-                                    data.first().id,
-                                ),
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.BEFORE,
-                                    data.last().id,
-                                )
-                            )
-                        )
-                    }
-                    LoadType.PREPEND -> {
                         postRemoteKeyDao.insert(
                             PostRemoteKeyEntity(
                                 PostRemoteKeyEntity.KeyType.AFTER,
                                 data.first().id,
-                            ),
+                            )
                         )
+                        if (postDao.isEmpty()) {
+                            postRemoteKeyDao.insert(
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.BEFORE,
+                                    data.last().id,
+                                ),
+                            )
+                        }
                     }
                     LoadType.APPEND -> {
                         postRemoteKeyDao.insert(
@@ -79,10 +77,9 @@ class PostRemoteMediator(
                             )
                         )
                     }
+                    else -> Unit
                 }
-
-
-                postDao.insert(data.map(PostEntity::fromDto))
+                postDao.insert(data.toEntity())
             }
 
             return MediatorResult.Success(data.isEmpty())

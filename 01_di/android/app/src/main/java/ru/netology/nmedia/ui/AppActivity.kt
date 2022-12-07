@@ -59,6 +59,8 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
             invalidateOptionsMenu()
         }
 
+
+
         firebaseMessaging.token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 println("some stuff happened: ${task.exception}")
@@ -119,4 +121,6 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                 .show()
         }
     }
+
+
 }

@@ -26,8 +26,8 @@ import javax.inject.Singleton
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
     private val apiService: ApiService,
-    private val postRemoteKeyDao: PostRemoteKeyDao,
-    private val appDb: AppDb
+    postRemoteKeyDao: PostRemoteKeyDao,
+    appDb: AppDb
 ) : PostRepository {
 
     @OptIn(ExperimentalPagingApi::class)
@@ -45,9 +45,6 @@ class PostRepositoryImpl @Inject constructor(
             it.map(PostEntity::toDto)
         }
 
-//        postDao.getAll()
-//        .map(List<PostEntity>::toDto)
-//        .flowOn(Dispatchers.Default)
 
     override suspend fun getAll() {
         try {
