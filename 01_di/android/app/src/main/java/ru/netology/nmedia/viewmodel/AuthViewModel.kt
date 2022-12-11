@@ -4,17 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-
 import kotlinx.coroutines.Dispatchers
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.auth.AuthState
 import ru.netology.nmedia.dto.Token
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val appAuth: AppAuth,
-    ) : ViewModel() {
+) : ViewModel() {
     val authData: LiveData<Token?> = appAuth.authStateFlow
         .asLiveData(Dispatchers.Default)
     val authenticated: Boolean

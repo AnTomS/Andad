@@ -88,7 +88,7 @@ class FeedFragment : Fragment() {
 
         binding.swiperefresh.setOnRefreshListener {
             adapter.refresh()
-
+            viewModel.loadPosts()
         }
 
         binding.fab.setOnClickListener {

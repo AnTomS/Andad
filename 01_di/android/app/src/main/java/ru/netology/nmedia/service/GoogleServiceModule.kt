@@ -6,7 +6,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 
 
 @InstallIn(SingletonComponent::class)
@@ -14,13 +13,13 @@ import javax.inject.Singleton
 
 class GoogleServiceModule {
 
-    @Singleton
+
     @Provides
     fun provideFirebaseMessagingModule(): FirebaseMessaging {
         return FirebaseMessaging.getInstance()
     }
 
-    @Singleton
+
     @Provides
     fun provideGoogleApi(): GoogleApiAvailability {
         return GoogleApiAvailability.getInstance()
