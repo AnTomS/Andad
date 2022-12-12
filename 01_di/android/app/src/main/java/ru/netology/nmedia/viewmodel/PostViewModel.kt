@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.core.net.toFile
 import androidx.lifecycle.*
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.dto.Token
@@ -32,6 +34,7 @@ private val empty = Post(
 )
 
 private val noPhoto = PhotoModel()
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PostViewModel @Inject constructor(
@@ -44,13 +47,38 @@ class PostViewModel @Inject constructor(
 
     val authData: LiveData<Token?> = appAuth.authStateFlow.asLiveData(Dispatchers.Default)
 
+    private val cached = repository
+        .data
+        .cachedIn(viewModelScope)
 
-    val data: Flow<PagingData<Post>> = appAuth.authStateFlow
+
+//    val data: Flow<PagingData<FeedItem>> = appAuth.authStateFlow
+//        .flatMapLatest { (myId, _) ->
+//            repository.data.map { posts ->
+//                if(posts is Post){
+//                posts.map { it.copy(ownedByMe = it.authorId == myId) }
+//            } else {
+//            posts}
+//            }
+//        }.flowOn(Dispatchers.Default)
+
+    val data: Flow<PagingData<FeedItem>> = appAuth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            repository.data.map { posts ->
-                posts.map { it.copy(ownedByMe = it.authorId == myId) }
-            }
-        }.flowOn(Dispatchers.Default)
+            cached
+                .map {pagingData ->
+                    pagingData.map {
+                        if (it is Post) {
+                            it.copy(ownedByMe = it.authorId == myId)
+                        } else {
+                            it
+                        }
+                    }
+                }
+        }
+    .flowOn(Dispatchers.Default)
+
+
+
 
 
     private val _dataState = MutableLiveData<FeedModelState>()

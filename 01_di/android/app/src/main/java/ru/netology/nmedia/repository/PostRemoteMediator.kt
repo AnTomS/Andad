@@ -32,11 +32,10 @@ class PostRemoteMediator(
                     } ?: apiService.getLatest(state.config.pageSize)
 
                 LoadType.PREPEND -> {
-//                    отключаем, чтобы после т. е. при scroll к первому сверху
-//                     элементу данные автоматически не подгружались
-                    return MediatorResult.Success(true)
-
-
+                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(
+                        endOfPaginationReached = false
+                    )
+                    apiService.getAfter(id, state.config.pageSize)
                 }
 
                 LoadType.APPEND -> {
@@ -54,6 +53,8 @@ class PostRemoteMediator(
             appDb.withTransaction {
                 when (loadType) {
                     LoadType.REFRESH -> {
+                        postDao.clear()
+                        postRemoteKeyDao.clear()
                         postRemoteKeyDao.insert(
                             PostRemoteKeyEntity(
                                 PostRemoteKeyEntity.KeyType.AFTER,
@@ -70,17 +71,30 @@ class PostRemoteMediator(
                         }
                     }
                     LoadType.APPEND -> {
-                        postRemoteKeyDao.insert(
-                            PostRemoteKeyEntity(
-                                PostRemoteKeyEntity.KeyType.BEFORE,
-                                data.last().id,
+                        if (data.isNotEmpty()) {
+                            postRemoteKeyDao.insert(
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.BEFORE,
+                                    data.last().id,
+                                ),
                             )
-                        )
+                        }
                     }
-                    else -> Unit
+                    LoadType.PREPEND -> {
+                        if (data.isNotEmpty()) {
+                            postRemoteKeyDao.insert(
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.AFTER,
+                                    data.first().id,
+                                )
+                            )
+                        }
+                    }
                 }
-                postDao.insert(data.toEntity())
+                if (data.isNotEmpty())
+                    postDao.insert(data.toEntity())
             }
+
 
             return MediatorResult.Success(data.isEmpty())
         } catch (e: IOException) {
